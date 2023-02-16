@@ -47,6 +47,8 @@ class UserItem(object):
         SAML = "SAML"
         TableauIDWithMFA = "TableauIDWithMFA"
         ServerDefault = "ServerDefault"
+        TableauID = "TableauID"
+        Local = "Local"
 
     def __init__(
         self, name: Optional[str] = None, site_role: Optional[str] = None, auth_setting: Optional[str] = None
@@ -308,7 +310,6 @@ class UserItem(object):
         def create_user_model_from_line(line_values: List[str], logger) -> "UserItem":
             UserItem.CSVImport._validate_import_line_or_throw(line_values, logger)
             values: List[str] = list(map(lambda x: x.strip(), line_values))
-            values = list(map(lambda x: x.lower(), values))
             user = UserItem(values[UserItem.CSVImport.ColumnType.USERNAME])
             if len(values) > 1:
                 if len(values) > UserItem.CSVImport.ColumnType.MAX:
@@ -363,7 +364,7 @@ class UserItem(object):
         # Some fields in the import file are restricted to specific values
         # Iterate through each field and validate the given value against hardcoded constraints
         @staticmethod
-        def _validate_import_line_or_throw(line, logger) -> None:
+        def _validate_import_line_or_throw(line: List[str], logger) -> None:
             _valid_attributes: List[List[str]] = [
                 [],
                 [],
@@ -380,6 +381,7 @@ class UserItem(object):
 
             if len(line) > UserItem.CSVImport.ColumnType.MAX:
                 raise AttributeError("Too many attributes in line")
+            # sometimes usernames are case sensitive
             username = line[UserItem.CSVImport.ColumnType.USERNAME.value]
             logger.debug("> details - {}".format(username))
             UserItem.validate_username_or_throw(username)
